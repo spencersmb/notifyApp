@@ -1,6 +1,12 @@
 import {App, IonicApp, Platform} from 'ionic-angular';
 import {GettingStartedPage} from './pages/getting-started/getting-started';
 import {ListPage} from './pages/list/list';
+import {LoginPage} from "./pages/login/login";
+import {HomePage} from "./pages/home/home";
+import {SearchPage} from "./pages/search/search";
+import {GroupsPage} from "./pages/groups/groups";
+import {SettingsPage} from "./pages/settings/settings";
+import {ProfilePage} from "./pages/profile/profile";
 
 
 @App({
@@ -8,16 +14,23 @@ import {ListPage} from './pages/list/list';
   config: {} // http://ionicframework.com/docs/v2/api/config/Config/
 })
 class MyApp {
-  rootPage: any = GettingStartedPage;
-  pages: Array<{title: string, component: any}>
+  rootPage: any = HomePage;
+  pages: Array<{title: string, component: any}>;
 
   constructor(private app: IonicApp, private platform: Platform) {
     this.initializeApp();
 
     // used for an example of ngFor and navigation
     this.pages = [
-      { title: 'Getting Started', component: GettingStartedPage },
-      { title: 'List', component: ListPage }
+      { title: 'Login', component: LoginPage },
+      { title: 'Home', component: HomePage },
+      { title: 'Find Groups', component: SearchPage },
+      { title: 'My Groups', component: GroupsPage },
+      { title: 'Settings', component: SettingsPage },
+      { title: 'Profile', component: ProfilePage }
+
+      //{ title: 'Getting Started', component: GettingStartedPage },
+      //{ title: 'List', component: ListPage }
     ];
 
   }

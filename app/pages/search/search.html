@@ -1,0 +1,24 @@
+<!--
+  Generated template for the SearchPage page.
+
+  See http://ionicframework.com/docs/v2/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-navbar *navbar>
+  <button menuToggle>
+    <ion-icon name="menu"></ion-icon>
+  </button>
+</ion-navbar>
+
+<ion-content padding class="search">
+  <ion-searchbar (keyup.enter)="keyHasBeenPressed($event)" (cancel)="onCancel()">
+    <ion-list></ion-list>
+  </ion-searchbar>
+  <ion-list>
+    <p *ngIf="searching === true">Searching...</p>
+    <button ion-item *ngFor="#result of results" (click)="navGroupDetail(result)">
+      <p><span>{{result.tag}}</span></p>
+      <h2>{{result.title}}</h2>
+    </button>
+  </ion-list>
+</ion-content>

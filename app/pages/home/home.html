@@ -1,0 +1,52 @@
+<!--
+  Generated template for the HomePage page.
+
+  See http://ionicframework.com/docs/v2/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-navbar *navbar>
+  <button menuToggle>
+    <ion-icon name="menu"></ion-icon>
+  </button>
+  <ion-buttons end>
+    <button (click)="navSearch()">
+      <ion-icon name="search"></ion-icon>
+    </button>
+  </ion-buttons>
+</ion-navbar>
+
+<ion-content padding class="home">
+  <div class="header">
+    Air-Note Header
+  </div>
+  <div padding>
+    <ion-segment [(ngModel)]="homeTab">
+      <ion-segment-button value="notes">
+        Notes
+      </ion-segment-button>
+      <ion-segment-button value="groups">
+        My Groups
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <!-- content switch -->
+  <div [ngSwitch]="homeTab">
+
+    <!-- recent notes list -->
+    <ion-list *ngSwitchWhen="'notes'">
+      <button ion-item (click)="navNote(note)">
+        <h2> Nav Title <span>3hr</span></h2>
+        <p>Desc</p>
+      </button>
+    </ion-list>
+
+    <!-- groups list -->
+    <ion-list *ngSwitchWhen="'groups'">
+      <button ion-item (click)="navGroup(group)">
+        <h2 >Group Item Title</h2>
+      </button>
+    </ion-list>
+  </div>
+
+</ion-content>
