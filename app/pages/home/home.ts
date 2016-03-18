@@ -2,7 +2,13 @@ import {Page, NavController, Modal} from 'ionic-angular';
 import {SearchPage} from "../search/search";
 import {NoteDetailPage} from "../note-detail/note-detail";
 import {GroupDetailPage} from "../groups/group-detail/group-detail";
-
+import {GroupService} from "../../providers/groups-service/groups-service";
+import {NotesService} from "../../providers/notes-services/notes-service";
+import {ArrayObservable} from "../../../node_modules/rxjs/observable/fromArray";
+declare var Firebase: any;
+import 'rxjs/Rx';
+import {Observable} from 'rxjs/Observable';
+import {Subject } from 'rxjs/Subject';
 /*
  Generated class for the HomePage page.
 
@@ -20,10 +26,36 @@ export class HomePage {
     notes: any;
     noteDetailPage: any;
     groupDetailPage: any;
+    selectedGroups:any;
+
+    groupData$: string[];
+    notesData$: any;
+
+    ref: any;
+    firebaseUrl:string;
+    
+    date: Date;
+    today: number;
+
+    results$: any;
+    notes$: any;
+    notes2$: Observable<any>;
+    notes3$: Observable<any>;
+    masterStream: any = new Array();
+
+    masterObservable: any;
+    userPipe:Observable<any>;
+    notesMerged: any;
+    mergedArray: any;
 
     constructor(
-        private _nav: NavController
+        private _nav: NavController,
+        private _groupsService: GroupService,
+        private _notesService: NotesService
     ) {
+        this.firebaseUrl = 'https://glcsmsdev.firebaseio.com';
+        this.ref = new Firebase(this.firebaseUrl);
+
         this.search = SearchPage;
 
         this.homeTab = 'notes';
@@ -31,6 +63,86 @@ export class HomePage {
         this.noteDetailPage = NoteDetailPage;
 
         this.groupDetailPage = GroupDetailPage;
+        
+        this.date = new Date();
+        this.today = this.date.getTime();
+
+        //console.log(this.date.toLocaleTimeString());
+        this.notesData$ = [];
+        //console.log(this.date.getTime());
+        //console.log(this.date.toTimeString());
+        this.masterObservable = [];
+
+    }
+    ngOnInit(){
+        this.results$ = this._groupsService.getUserGroups(1112223333)
+            .subscribe(
+                //success
+                data => {
+                    console.log(data);
+                    let _arry = toClientsArray(data);
+                    this.groupData$ = toArray(data);
+                    //console.log(_arry);
+
+                    this.buildObservable(_arry);
+                },
+                error => console.log(error)
+            );
+        this.userPipe = this._groupsService.getUserPipes(1112223333)
+        .map(item => {
+            let arr = [];
+            for(name in item){
+                arr.push(item[name]);
+            }
+            return arr;
+        });
+        //get each group and its sub messages
+        //get messages from them filtered by time(most recent) - might already be ordered due to firebase?
+        //merge streams
+        //subscribe
+        //output to dom
+
+
+        //this.notes$ = this._notesService.getGroupNotes('Alpha, LLC', 'Construction');
+    //.subscribe(
+    //        //success
+    //        data => {
+    //            //console.log(data);
+    //            this.notesData$ = toNotesArray(data, 'Bikini Car Wash');
+    //            //this.notesData$ = toArray(data);
+    //        },
+    //        error => console.log(error)
+    //    );
+
+        //merged stream example
+        this.notes$ = this._notesService.getGroupNotes('Alpha, LLC', 'Construction');
+        this.notes2$ = this._notesService.getGroupNotes('Bikini Car Wash', 'Car wash');
+        this.notes3$ = this._notesService.getGroupNotes('Puppies, LLC', 'Puppy Training');
+        let source = this.notes$.merge(this.notes2$, this.notes3$);
+        this.mergedArray = [];
+        let arr = [];
+        this.notesMerged = source
+        .map(item => {
+
+            let obj ={};
+            for(var name in item){
+                obj = {date: item[name].date, message: item[name].message}
+                arr.push(obj);
+            }
+            //arr.push(obj);
+            return arr;
+        });
+
+        //.subscribe(
+        //    //success
+        //    data => {
+        //        this.notesData$ = data;
+        //        //this.notesData$ = toNotesArray(data, 'Bikini Car Wash');
+        //        //this.notesData$ = toNotesArray(data, 'Bikini Car Wash');
+        //        //console.log(this.notesData$);
+        //    },
+        //    error => console.log(error)
+        //);
     }
     //Need get notes and Groups crud services
     navSearch(): void{
@@ -42,4 +154,151 @@ export class HomePage {
     navGroup(group): void{
         this._nav.push(this.groupDetailPage);
     }
+    buildObservable(array){
+        this.masterStream = [];
+
+        let clientArrlength = array.length;
+
+        for(var i = 0; i< clientArrlength; i++){
+            //build subscriptions array
+            let subscriptions = [];
+            for(let x =0; x < array[i].subscriptions.length; x++){
+
+                subscriptions.push(array[i].subscriptions[x]);
+            }
+
+            //begin building control object
+            this.masterObservable[i] = {
+                title: array[i].client,
+                subscriptions:subscriptions,
+                messages:[]
+                //messages: this._notesService.getGroupNotes('Alpha, LLC', 'Construction')
+            };
+
+            //get subscription length
+            let subscriptionLength = this.masterObservable[i].subscriptions.length;
+
+            //build message object with observables to each message stream to add to masterObject
+            for(var k = 0; k < subscriptionLength; k++) {
+                let client = this.masterObservable[i].title;
+                let item = this.masterObservable[i].subscriptions[k];
+                let obj = {item: this._notesService.getGroupNotes(client, item)};
+                this.masterObservable[i].messages.push(obj);
+            }
+
+            //build each stream and push to object to master list
+            for(var j = 0; j < subscriptionLength; j++) {
+
+                let subscriberName = this.masterObservable[i].subscriptions[j];
+                let clientName = this.masterObservable[i].title;
+
+                //console.log(this.masterObservable[i]);
+                this.masterObservable[i].messages[j].item
+                    .subscribe(
+                        //success
+                        item => {
+                                let obj ={};
+                                for(var name in item){
+                                    obj = {
+                                        client: clientName,
+                                        name: subscriberName,
+                                        date: item[name].date,
+                                        message: item[name].message
+                                    };
+                                    this.masterStream.push(obj);
+                                }
+                                console.log(this.masterStream);
+                        },
+                        error => console.log(error)
+                    );
+            }
+
+        }//end for loop
+        console.log(this.masterObservable);
+
+        ////pull out streams
+        //let streams = [];
+        //
+        //for(var z=0; z< this.masterObservable.length; z++){
+        //    let messageLength = this.masterObservable[z].messages.length;
+        //    for(var y=0; y < messageLength; y++){
+        //        streams.push(this.masterObservable[z].messages[y].item);
+        //    }
+        //}
+        //
+        ////Merge streams and subscribe
+        //let mainStream = new Observable(observer => {observer.next();});
+        //
+        //
+        //
+        //let source = mainStream.merge(streams[0]);
+        //for(var w=0; w < streams.length; w++){
+        //}
+
+
+        //this.masterStream = source.map(item => {
+        //    let arr = [];
+        //        //console.log(item);
+        //        //let obj ={};
+        //        //for(var name in item){
+        //        //    obj = {date: item[name].date, message: item[name].message};
+        //        //    arr.push(obj);
+        //        //}
+        //        ////arr.push(obj);
+        //        //return arr;
+        //    });
+
+
+        //this.notesMerged = source
+        //    .map(item => {
+        //
+        //        let obj ={};
+        //        for(var name in item){
+        //            obj = {date: item[name].date, message: item[name].message};
+        //            arr.push(obj);
+        //        }
+        //        //arr.push(obj);
+        //        return arr;
+        //    });
+    }
+}
+function toArray(data){
+    let _arr = [];
+    for( var subname in data){
+        _arr.push(subname);
+    }
+    return _arr;
+}
+function toClientsArray(data){
+    let clientArr = [];
+    let obj = {};
+
+    for( var subname in data){
+        obj = {
+            client: subname,
+            subscriptions:[]
+        };
+        //loop through and place names of subscriptions
+        //is that enough to continue with the build out of observing function? Test
+        for(let i = 0; i < data[subname].length; i++){
+            obj['subscriptions'].push(data[subname][i]);
+        }
+        clientArr.push(obj);
+    }
+    return clientArr;
+}
+function toNotesArray(data, name){
+    let _arr = [];
+    let obj = {};
+
+    for( var key in data){
+        console.log();
+        obj = {
+            name: name,
+            date: data[key].date,
+            message: data[key].message
+        };
+        _arr.push(obj);
+    }
+    return _arr;
 }

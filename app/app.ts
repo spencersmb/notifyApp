@@ -8,12 +8,14 @@ import {GroupsPage} from "./pages/groups/groups";
 import {SettingsPage} from "./pages/settings/settings";
 import {ProfilePage} from "./pages/profile/profile";
 import {LoginService} from "./providers/login-service/login-service";
+import {GroupService} from "./providers/groups-service/groups-service";
+import {NotesService} from "./providers/notes-services/notes-service";
 
 
 @App({
   templateUrl: 'build/app.html',
   config: {}, // http://ionicframework.com/docs/v2/api/config/Config/
-  providers:[LoginService]
+  providers:[LoginService, GroupService, NotesService]
 })
 class MyApp {
   rootPage: any;

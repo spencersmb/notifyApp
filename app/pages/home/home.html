@@ -20,6 +20,14 @@
     Air-Note Header
   </div>
   <div padding>
+    {{today | date}}
+  </div>
+  <!--example using async pipe-->
+  <!-- <div>
+  {{userPipe | async}}
+  </div> -->
+
+  <div padding>
     <ion-segment [(ngModel)]="homeTab">
       <ion-segment-button value="notes">
         Notes
@@ -35,16 +43,17 @@
 
     <!-- recent notes list -->
     <ion-list *ngSwitchWhen="'notes'">
-      <button ion-item (click)="navNote(note)">
-        <h2> Nav Title <span>3hr</span></h2>
-        <p>Desc</p>
+      <button *ngFor="#m of masterStream" ion-item (click)="navNote(note)">
+        <h2>{{m.client}}<span style="font-size:11px;">{{m.date}}</span></h2>
+        <h5>{{m.name}}</h5>
+        <p>{{m.message}}</p>
       </button>
     </ion-list>
 
     <!-- groups list -->
     <ion-list *ngSwitchWhen="'groups'">
-      <button ion-item (click)="navGroup(group)">
-        <h2 >Group Item Title</h2>
+      <button *ngFor="#group of groupData$" ion-item (click)="navGroup(group)">
+        <h2>{{group}}</h2>
       </button>
     </ion-list>
   </div>
