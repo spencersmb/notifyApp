@@ -14,19 +14,28 @@
     <div class="logo-type">Air-Note</div>
   </div>
 
+  <div class="error-services" *ngIf="errorMessage !== null">
+    <p>{{errorMessage}}</p>
+  </div>
 
   <div class="login-form">
-    <form (ngSubmit)="onSubmit()">
+    <form [ngFormModel]="myForm" (ngSubmit)="onSubmit()">
       <ion-list>
 
         <ion-item>
-          <ion-label stacked>Username</ion-label>
-          <ion-input type="text"></ion-input>
+          <ion-label stacked>Email</ion-label>
+          <ion-input
+            [ngFormControl]="emailControl"
+            #email="ngForm"
+            type="email"></ion-input>
         </ion-item>
 
         <ion-item>
           <ion-label stacked>Password</ion-label>
-          <ion-input type="password"></ion-input>
+          <ion-input
+            [ngFormControl]="myForm.controls['password']"
+            #password="ngForm"
+            type="password"></ion-input>
         </ion-item>
 
       </ion-list>
@@ -36,5 +45,4 @@
       <p class="text-center">Create account</p>
     </div>
   </div>
-
 </ion-content>

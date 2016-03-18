@@ -1,7 +1,7 @@
 <ion-menu [content]="content">
 
   <ion-toolbar>
-    <ion-title>Pages</ion-title>
+    <ion-title>Air-Note</ion-title>
   </ion-toolbar>
 
   <ion-content>
@@ -9,6 +9,7 @@
       <button menuClose ion-item *ngFor="#p of pages" (click)="openPage(p)">
         {{p.title}}
       </button>
+      <button menuClose ion-item (click)="navSignOut()">Sign Out</button>
     </ion-list>
   </ion-content>
 
