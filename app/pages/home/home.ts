@@ -63,8 +63,8 @@ export class HomePage {
 
         this.groupDetailPage = GroupDetailPage;
         
-        this.date = new Date();
-        this.today = this.date.getTime();
+        //this.date = new Date();
+        //this.today = this.date.getTime();
 
         //console.log(this.date.toLocaleTimeString());
         this.notesData$ = [];
