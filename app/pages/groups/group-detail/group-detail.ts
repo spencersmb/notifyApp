@@ -20,7 +20,8 @@ export class GroupDetailPage {
     group: any;
     constructor(
         private _nav: NavController,
-        private _params: NavParams
+        private _params: NavParams,
+        private _groupServices: GroupService
     ) {
         this.group = this._params.data;
         this.toggleData = {}
@@ -43,6 +44,19 @@ export class GroupDetailPage {
                 isEnabled: false
             };
 
+        }
+    }
+    subscriptionToggle(subclient, i){
+
+        //if toggle is false
+        if(this.toggleData[i].isEnabled === true){
+            console.log('add');
+            //add item to subscription
+            this._groupServices.addSubscription(this.group.name, subclient);
+        }else{
+            console.log('remove');
+            //remove item from subscription
+            this._groupServices.removeSubscription(this.group.name, subclient);
         }
     }
 

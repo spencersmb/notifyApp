@@ -37,7 +37,7 @@ export class HomePage{
     ref: any;
     firebaseUrl:string;
 
-    date:number;
+    date:Date;
     today: number;
 
     notes$: any;
@@ -72,9 +72,8 @@ export class HomePage{
 
 
 
-        //this.date = 1458450331864;
-        //console.log(this.today);
-        //this.today = this.date.getTime();
+        this.date = new window.Date();
+        this.today = this.date.getTime();
         //console.log(this.today);
 
         //console.log(this.date.toLocaleTimeString());

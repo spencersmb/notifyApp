@@ -18,7 +18,7 @@ export class SettingsPage {
         private _nav: NavController,
         private _authService: LoginService
     ) {
-        this.currentUser = this._authService.data;
+        this.currentUser = this._authService.userData;
     }
     ngOnInit(){
         //subscribe to user observable

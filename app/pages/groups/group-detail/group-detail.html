@@ -18,7 +18,7 @@
       <ion-toggle
         (toggle)="toggle($event, i)"
         [(ngModel)]="toggleData[i].isEnabled"
-        (click)="test(subgroup.title)"
+        (click)="subscriptionToggle(subgroup.title, i)"
         [isChecked]="subgroup.title"></ion-toggle>
     </ion-item>
   </ion-list>
