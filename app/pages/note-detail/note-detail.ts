@@ -1,4 +1,5 @@
-import {Page, NavController} from 'ionic-angular';
+import {Page, NavController, NavParams} from 'ionic-angular';
+import {NotesService} from "../../providers/notes-services/notes-service";
 
 /*
  Generated class for the NoteDetailPage page.
@@ -10,10 +11,15 @@ import {Page, NavController} from 'ionic-angular';
     templateUrl: 'build/pages/note-detail/note-detail.html',
 })
 export class NoteDetailPage {
-
+    note: any;
     constructor(
-        private _nav: NavController
+        private _nav: NavController,
+        private _params: NavParams,
+        private _noteService: NotesService
     ) {
+        this.note = this._params.data;
+    }
+    ngOnInit(){
 
     }
 }

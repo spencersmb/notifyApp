@@ -1,4 +1,5 @@
 import {Page, NavController} from 'ionic-angular';
+import {LoginService} from "../../providers/login-service/login-service";
 
 /*
  Generated class for the ProfilePage page.
@@ -11,9 +12,18 @@ import {Page, NavController} from 'ionic-angular';
 })
 export class ProfilePage {
 
-    constructor(
-        private _nav: NavController
-    ) {
+    user: any;
 
+    constructor(
+        private _nav: NavController,
+        private _authService: LoginService
+    ) {
+        this.user = this._authService.userData;
+    }
+    ngOnInit(){
+        //subscribe to userObject in Login Service
+        this._authService.currentUser.subscribe(
+            updatedUser => this.user = updatedUser
+        );
     }
 }

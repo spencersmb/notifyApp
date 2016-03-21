@@ -1,4 +1,8 @@
 import {Page, NavController} from 'ionic-angular';
+import 'rxjs/Rx';
+import {Observable} from 'rxjs/Observable';
+import {GroupDetailPage} from "../groups/group-detail/group-detail";
+import {GroupService} from "../../providers/groups-service/groups-service";
 
 /*
  Generated class for the GroupsPage page.
@@ -11,9 +15,17 @@ import {Page, NavController} from 'ionic-angular';
 })
 export class GroupsPage {
 
+    results$: Observable<any>;
+    groupDetailPage: any;
+
     constructor(
-        private _nav: NavController
+        private _nav: NavController,
+        private _groupService: GroupService
     ) {
+        this.groupDetailPage = GroupDetailPage;
+    }
+    ngOnInit(){
+        this.results$ = this._groupService.getAllGroupItems();
 
     }
 }

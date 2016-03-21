@@ -26,8 +26,11 @@ class MyApp {
   constructor(
       private app: IonicApp,
       private platform: Platform,
-      private _authService: LoginService
+      private _authService: LoginService,
+      private _groupService: GroupService
+
   ) {
+
     this.initializeApp();
 
     // used for an example of ngFor and navigation
@@ -49,6 +52,11 @@ class MyApp {
   }
   checkAuth(): boolean{
     if(this._authService.isLogged !== null){
+
+      //If user is logged - Set currentUser and move to homepage
+      this._authService.setCurrentUser();
+      this._groupService.loadSelectedGroups(1112223333);
+
       return true;
     } else {
       return false;
@@ -71,6 +79,8 @@ class MyApp {
       // For example, we might change the StatusBar color. This one below is
       // good for dark backgrounds and light text:
       // StatusBar.setStyle(StatusBar.LIGHT_CONTENT)
+
+
 
     });
   }

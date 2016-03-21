@@ -1,14 +1,15 @@
-import {Page, NavController, Modal} from 'ionic-angular';
+import {Page, NavController, Modal, Platform} from 'ionic-angular';
 import {SearchPage} from "../search/search";
 import {NoteDetailPage} from "../note-detail/note-detail";
 import {GroupDetailPage} from "../groups/group-detail/group-detail";
 import {GroupService} from "../../providers/groups-service/groups-service";
 import {NotesService} from "../../providers/notes-services/notes-service";
-import {ArrayObservable} from "../../../node_modules/rxjs/observable/fromArray";
+import {LoginService} from "../../providers/login-service/login-service";
 declare var Firebase: any;
 import 'rxjs/Rx';
 import {Observable} from 'rxjs/Observable';
 import {Subject } from 'rxjs/Subject';
+
 /*
  Generated class for the HomePage page.
 
@@ -18,26 +19,27 @@ import {Subject } from 'rxjs/Subject';
 @Page({
     templateUrl: 'build/pages/home/home.html',
 })
-export class HomePage {
 
+export class HomePage{
+    onPageWillEnter() {
+        // THERE IT IS!!!
+    }
     search: any;
     homeTab: string;
     //create interface for notes
     notes: any;
     noteDetailPage: any;
     groupDetailPage: any;
-    selectedGroups:any;
 
     groupData$: string[];
     notesData$: any;
 
     ref: any;
     firebaseUrl:string;
-    
-    date: Date;
+
+    date:number;
     today: number;
 
-    results$: any;
     notes$: any;
     notes2$: Observable<any>;
     notes3$: Observable<any>;
@@ -47,10 +49,15 @@ export class HomePage {
     notesMerged: any;
     mergedArray: any;
 
+    //User
+    currentUser:any = '';
+
     constructor(
+        private platform: Platform,
         private _nav: NavController,
         private _groupsService: GroupService,
-        private _notesService: NotesService
+        private _notesService: NotesService,
+        private _authService: LoginService
     ) {
         this.firebaseUrl = 'https://glcsmsdev.firebaseio.com';
         this.ref = new Firebase(this.firebaseUrl);
@@ -62,83 +69,136 @@ export class HomePage {
         this.noteDetailPage = NoteDetailPage;
 
         this.groupDetailPage = GroupDetailPage;
-        
-        //this.date = new Date();
+
+
+
+        //this.date = 1458450331864;
+        //console.log(this.today);
         //this.today = this.date.getTime();
+        //console.log(this.today);
 
         //console.log(this.date.toLocaleTimeString());
-        this.notesData$ = [];
         //console.log(this.date.getTime());
         //console.log(this.date.toTimeString());
 
 
+
+        //set data to cached version - this is first empty but cached async
+        this.currentUser = this._authService.userData;
+        this.groupData$ = this._groupsService.filterSelectedGroups(this._groupsService.groupsdata);
+        this.notesData$ = this._notesService.notesData;
+
+
     }
     ngOnInit(){
-        this.results$ = this._groupsService.getUserGroups(1112223333)
-            .subscribe(
-                //success
-                data => {
-                    console.log(data);
-                    let _arry = toClientsArray(data);
-                    this.groupData$ = toArray(data);
-                    //console.log(_arry);
+        /*
+         Unsubscribe:
 
-                    this._notesService.buildObservable(_arry);
+         When adding unsubscribe feature we will need to be able to reset this main stream of notes - and also limit to 10
 
-                    this.masterStream = this._notesService.masterStream;
-                },
-                error => console.log(error)
+         */
+        this.platform.ready().then(() => {
+
+            //subscribe to userObject in Login Service
+            this._authService.currentUser.subscribe(
+                updatedUser => this.currentUser = updatedUser
             );
-        this.userPipe = this._groupsService.getUserPipes(1112223333)
-        .map(item => {
-            let arr = [];
-            for(name in item){
-                arr.push(item[name]);
-            }
-            return arr;
+
+            //subscribe to notes stream
+            this._notesService.notesStream$.subscribe(
+                newNote => {
+
+                    this.notesData$.unshift(newNote);
+
+                },
+                error => {
+                    console.log(error);
+                }
+
+            );
+
+            //subscribe to selected groups in groups service
+            //we initialize this stream in apps.ts or after user login
+            this._groupsService.selectedGroups$.subscribe(
+                updatedGroups => {
+
+                    this.resetNotes();
+
+                    //on response initialize notes stream
+                    this._notesService.loadSelectedNotes();
+
+                    return this.groupData$ = this._groupsService.filterSelectedGroups(updatedGroups);
+                }
+            );
+
+
+
+
         });
 
+        //subscribe user to their groups and messages feedd
+        //this.results$ = this._groupsService.getUserGroups(1112223333)
+        //    .subscribe(
+        //        //success
+        //        data => {
+        //            let _arry = toClientsArray(data);
+        //            this.groupData$ = toArray(data);
+        //            //console.log(_arry);
+        //        },
+        //        error => console.log(error)
+        //    );
 
-        //this.notes$ = this._notesService.getGroupNotes('Alpha, LLC', 'Construction');
-            //.subscribe(
-            //        //success
-            //        data => {
-            //            //console.log(data);
-            //            this.notesData$ = toNotesArray(data, 'Bikini Car Wash');
-            //            //this.notesData$ = toArray(data);
-            //        },
-            //        error => console.log(error)
-            //    );
+        //async pipe example
+        //this.userPipe = this._groupsService.getUserPipes(1112223333)
+        //.map(item => {
+        //    let arr = [];
+        //    for(name in item){
+        //        arr.push(item[name]);
+        //    }
+        //    return arr;
+        //});
+
 
         //merged stream example and async pipe example
-        this.notes$ = this._notesService.getGroupNotes('Alpha, LLC', 'Construction');
-        this.notes2$ = this._notesService.getGroupNotes('Bikini Car Wash', 'Car wash');
-        this.notes3$ = this._notesService.getGroupNotes('Puppies, LLC', 'Puppy Training');
-        let source = this.notes$.merge(this.notes2$, this.notes3$);
-        this.mergedArray = [];
-        let arr = [];
-        this.notesMerged = source
-        .map(item => {
-
-            let obj ={};
-            for(var name in item){
-                obj = {date: item[name].date, message: item[name].message}
-                arr.push(obj);
-            }
-            //arr.push(obj);
-            return arr;
-        });
+        //this.notes$ = this._notesService.getGroupNotes('Alpha, LLC', 'Construction');
+        //this.notes2$ = this._notesService.getGroupNotes('Bikini Car Wash', 'Car wash');
+        //this.notes3$ = this._notesService.getGroupNotes('Puppies, LLC', 'Puppy Training');
+        //let source = this.notes$.merge(this.notes2$, this.notes3$);
+        //this.mergedArray = [];
+        //let arr = [];
+        //this.notesMerged = source
+        //.map(item => {
+        //
+        //    let obj ={};
+        //    for(var name in item){
+        //        obj = {date: item[name].date, message: item[name].message}
+        //        arr.push(obj);
+        //    }
+        //    //arr.push(obj);
+        //    return arr;
+        //});
 
     }
-    //Need get notes and Groups crud services
+    resetNotes(): void{
+        this.notesData$ = [];
+    }
     navSearch(): void{
         this._nav.setRoot(this.search);
     }
     navNote(note): void{
-        this._nav.push(this.noteDetailPage);
+        this._nav.push(this.noteDetailPage , {
+            client: note.client,
+            category: note.category,
+            date: note.date,
+            message: note.message
+        });
     }
     navGroup(group): void{
-        this._nav.push(this.groupDetailPage);
+        console.log(group);
+        this._nav.push(this.groupDetailPage ,{
+            name: group.client,
+            subclients: group.subclients
+        });
     }
 
 }

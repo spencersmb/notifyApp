@@ -3,6 +3,8 @@ import {ControlGroup, FormBuilder, AbstractControl, Validators, Control} from 'a
 import {HomePage} from "../home/home";
 import {ValidationService} from "../../providers/login-service/validation-service";
 import {LoginService} from "../../providers/login-service/login-service";
+import {GroupService} from "../../providers/groups-service/groups-service";
+import {NotesService} from "../../providers/notes-services/notes-service";
 
 /*
  Generated class for the LoginPage page.
@@ -25,7 +27,9 @@ export class LoginPage {
     constructor(
         private _nav: NavController,
         private _fb: FormBuilder,
-        public _authService: LoginService
+        public _authService: LoginService,
+        private _groupService: GroupService,
+        private _noteService: NotesService
     ) {
         this.home = HomePage;
         this.loginPage = LoginPage;
@@ -47,7 +51,7 @@ export class LoginPage {
 
     }
     onSubmit(): void{
-        this._authService.firebaseRef.authWithPassword(this.myForm.value
+        this._authService.ref.authWithPassword(this.myForm.value
             ,function(error, authData){
                 if(error) {
                     this.errorMessage = error;
@@ -56,16 +60,12 @@ export class LoginPage {
                     console.log('signed in!');
                     this._nav.setRoot(this.home);
 
-                    //store token in localstorage
-                    //localStorage.setItem('token', authData.token);
-                    //console.log(authData);
-
-                    //after complete authenticate and emit event
-                    //this._authService.isAuthenticated();
-                    //this._authService.loggedEvent('login');
+                    //set Current User
+                    this._authService.setCurrentUser();
+                    this._groupService.loadSelectedGroups(1112223333);
+                    this._noteService.loadSelectedNotes();
                 }
-            }.bind(this)
-        );
+            }.bind(this));
 
     }
 }

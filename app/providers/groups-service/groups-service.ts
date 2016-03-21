@@ -2,6 +2,7 @@ import {Injectable, Inject} from 'angular2/core';
 import {Http} from 'angular2/http';
 import {Observable} from "rxjs/Observable";
 import 'rxjs/Rx';
+import {Observer} from "rxjs/Observer";
 declare var Firebase: any;
 
 /*
@@ -17,15 +18,70 @@ export class GroupService {
     ref: any;
     firebaseUrl:string;
 
+    //Observable groups variables
+    selectedGroups$:Observable<any>;
+    selectedObserver$:Observer<any>;
+    groupsdata:any;
+    allGroupsData:any;
+
     constructor( private _http: Http) {
         this.firebaseUrl = 'https://glcsmsdev.firebaseio.com';
         this.data = null;
         this.ref = new Firebase(this.firebaseUrl);
-    }
-    getAllGroups(){
 
+        //Observable groups setup
+        //initialize stream1
+        this.selectedGroups$ = new Observable(observer =>
+            this.selectedObserver$ = observer).share();
+
+        this.groupsdata = [];
     }
+    getAllGroupItems():Observable<any>{
+        return this._http.get(this.ref + 'notifications.json')
+            .map(response => response.json()).map(item => {
+                let arr = [];
+                let obj = {};
+                for(var name in item){
+                    obj = {
+                        client: name,
+                        subclients: []
+                    };
+                    for( var subitem in item[name]){
+                        item[name][subitem]['title'] = subitem;
+                        obj['subclients'].push(item[name][subitem]);
+                    }
+                    arr.push(obj);
+                }
+
+                //set cached data
+                this.allGroupsData = arr;
+                //return full array
+                return arr;
+            });
+    }
+    loadSelectedGroups(id){
+
+        new Observable(observer => {
+            this.ref.child('members').child(id).child('subscribed').on("value", function(snapshot) {
+
+                observer.next(snapshot.val());
+
+            }, function (errorObject) {
+                console.log("The read failed: " + errorObject.code);
+            });
+        })
+        .subscribe(
+            data => {
+                //set cached data
+                this.groupsdata = data;
+                // Push new group data into the shared Observable stream
+                this.selectedObserver$.next(data);
+            }
+        );
+    }
+    //old way
     getUserGroups(id){
+        console.log('fire getUserGroups');
 
         return new Observable(observer => {
             this.ref.child('members').child(id).child('subscribed')
@@ -56,7 +112,7 @@ export class GroupService {
     }
     getSubscriptions(groupName){
         return new Observable(observer => {
-            this.ref.child('notifications').child(groupName)
+            this.ref.child('notifications')
                 .on("value", function(snapshot) {
 
                     //console.log(snapshot.val());
@@ -87,6 +143,24 @@ export class GroupService {
                     resolve(this.data);
                 });
         });
+    }
+    filterSelectedGroups(data){
+        let arr = [];
+        let obj = {};
+
+        for(var name in data){
+            obj = {
+                client: name,
+                subclients: []
+            };
+            let arrLength = data[name].length;
+
+            for( var i = 0; i < arrLength; i++){
+                obj['subclients'].push(data[name][i]);
+            }
+            arr.push(obj);
+        }
+        return arr;
     }
 }
 

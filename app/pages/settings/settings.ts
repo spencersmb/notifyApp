@@ -1,4 +1,5 @@
 import {Page, NavController} from 'ionic-angular';
+import {LoginService} from "../../providers/login-service/login-service";
 
 /*
  Generated class for the SettingsPage page.
@@ -11,9 +12,18 @@ import {Page, NavController} from 'ionic-angular';
 })
 export class SettingsPage {
 
-    constructor(
-        private _nav: NavController
-    ) {
+    currentUser:any = '';
 
+    constructor(
+        private _nav: NavController,
+        private _authService: LoginService
+    ) {
+        this.currentUser = this._authService.data;
+    }
+    ngOnInit(){
+        //subscribe to user observable
+        this._authService.currentUser.subscribe(
+            updatedUser => this.currentUser = updatedUser
+        );
     }
 }

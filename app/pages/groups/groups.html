@@ -17,5 +17,7 @@
 </ion-navbar>
 
 <ion-content padding class="groups">
-  
+  <button ion-item *ngFor="#result of results$ | async" (click)="navGroupDetail(result)">
+    <h2>{{result.client}}</h2>
+  </button>
 </ion-content>

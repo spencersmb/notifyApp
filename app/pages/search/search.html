@@ -15,10 +15,10 @@
     <ion-list></ion-list>
   </ion-searchbar>
   <ion-list>
+
     <p *ngIf="searching === true">Searching...</p>
-    <button ion-item *ngFor="#result of results" (click)="navGroupDetail(result)">
-      <p><span>{{result.tag}}</span></p>
-      <h2>{{result.title}}</h2>
+    <button ion-item *ngFor="#result of results$ | async" (click)="navGroupDetail(result)">
+      <h2>{{result.client}}</h2>
     </button>
   </ion-list>
 </ion-content>
